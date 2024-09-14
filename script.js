@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Default selection
     let selectedZone = 'dual-zone'; // or 'single-zone' as per your preference
     dualZoneOption.classList.add('zone-selected');
-
+}
     function selectZone(zoneId) {
         if (zoneId === 'dual-zone') {
             dualZoneOption.classList.add('zone-selected');
