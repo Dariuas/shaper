@@ -16,6 +16,8 @@ h1 {
 
 h2 {
     margin: 0;
+    margin-top: 30px;
+    margin-bottom: 10px;
     text-align: center;
 }
 
@@ -58,7 +60,7 @@ h2 {
     clip-path: polygon(0% 50%, 100% 0%, 100% 100%);
 }
 
-.dynamic-line {
+.dynamic-line, .roll-line, .yaw-line {
     background-color: yellow;
     width: 100%;
     height: 4px;
@@ -145,4 +147,65 @@ h2 {
     color: black;
     border: none;
     cursor: pointer;
+}
+.zone-engagement-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.zone-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 20px;
+    cursor: pointer;
+}
+
+.zone-label {
+    margin-top: 10px;
+    font-size: 18px;
+    color: white;
+}
+
+.zone-square {
+    width: 100px;
+    height: 100px;
+    border: 2px solid grey;
+    position: relative;
+}
+
+.zone-square.single {
+    background-color: grey;
+}
+
+.zone-square.dual {
+    display: flex;
+    background-color: grey;
+}
+
+.zone-half {
+    flex: 1;
+    background-color: grey;
+    border-right: 1px solid grey;
+}
+
+.zone-half:last-child {
+    border-right: none;
+}
+
+.zone-selected {
+    border-color: yellow;
+}
+
+.zone-selected .zone-square.single,
+.zone-selected .zone-square.dual,
+.zone-selected .zone-half {
+    background-color: yellow;
+}
+
+.zone-option:not(.zone-selected) .zone-square.single,
+.zone-option:not(.zone-selected) .zone-square.dual,
+.zone-option:not(.zone-selected) .zone-half {
+    background-color: grey;
 }

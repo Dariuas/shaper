@@ -79,9 +79,6 @@ function updateCarve(element, position) {
     const percent = position / range;
     const value = Math.round(percent * 10 - 5); // From -5 to +5
     element.textContent = value;
-
-    // The line is static, so we don't need to redraw it every time
-    // drawCarveLine();
 }
 
 function updatePivot(element, position) {
@@ -116,12 +113,28 @@ function updateDynamic(element, position) {
     element.textContent = value;
 }
 
+function updateRoll(element, position) {
+    const range = element.parentNode.offsetWidth - element.offsetWidth;
+    const percent = position / range;
+    const value = Math.round(percent * 10 - 5); // From -5 to +5
+    element.textContent = value;
+}
+
+function updateYaw(element, position) {
+    const range = element.parentNode.offsetWidth - element.offsetWidth;
+    const percent = position / range;
+    const value = Math.round(percent * 10 - 5); // From -5 to +5
+    element.textContent = value;
+}
+
 // Initialize drag functionality for all sliders
 window.onload = function () {
     enableDrag(document.querySelector('.carve-handle'), updateCarve);
     enableDrag(document.querySelector('.pivot-handle'), updatePivot);
     enableDrag(document.querySelector('.triangle-handle'), updateTriangle);
     enableDrag(document.querySelector('.dynamic-handle'), updateDynamic);
+    enableDrag(document.querySelector('.roll-handle'), updateRoll);
+    enableDrag(document.querySelector('.yaw-handle'), updateYaw);
 
     // Initialize Carve Canvas
     const carveCanvas = document.createElement('canvas');
@@ -138,7 +151,9 @@ function shareSettings() {
         carve: document.querySelector('.carve-handle').textContent,
         stance: document.querySelector('.pivot-handle').textContent,
         aggressive: document.querySelector('.triangle-handle').textContent,
-        dynamic: document.querySelector('.dynamic-handle').textContent
+        dynamic: document.querySelector('.dynamic-handle').textContent,
+        roll: document.querySelector('.roll-handle').textContent,
+        yaw: document.querySelector('.yaw-handle').textContent
     });
 
     const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
@@ -149,4 +164,65 @@ function shareSettings() {
     });
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    const dualZoneOption = document.getElementById('dual-zone');
+    const singleZoneOption = document.getElementById('single-zone');
+
+    // Default selection
+    let selectedZone = 'dual-zone'; // or 'single-zone' as per your preference
+    dualZoneOption.classList.add('zone-selected');
+
+    function selectZone(zoneId) {
+        if (zoneId === 'dual-zone') {
+            dualZoneOption.classList.add('zone-selected');
+            singleZoneOption.classList.remove('zone-selected');
+            selectedZone = 'dual-zone';
+        } else if (zoneId === 'single-zone') {
+            singleZoneOption.classList.add('zone-selected');
+            dualZoneOption.classList.remove('zone-selected');
+            selectedZone = 'single-zone';
+        }
+    }
+
+    dualZoneOption.addEventListener('click', function() {
+        selectZone('dual-zone');
+    });
+
+    singleZoneOption.addEventListener('click', function() {
+        selectZone('single-zone');
+    });
+
+    // Update the shareSettings function to include the selected zone
+    function shareSettings() {
+        const params = new URLSearchParams({
+            // Existing parameters
+            carve: document.querySelector('.carve-handle').textContent,
+            stance: document.querySelector('.pivot-handle').textContent,
+            aggressive: document.querySelector('.triangle-handle').textContent,
+            dynamic: document.querySelector('.dynamic-handle').textContent,
+            roll: document.querySelector('.roll-handle').textContent,
+            yaw: document.querySelector('.yaw-handle').textContent,
+            zone: selectedZone
+        });
+
+        const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            alert('Settings URL copied to clipboard: ' + shareUrl);
+        }).catch(err => {
+            console.error('Error copying URL to clipboard:', err);
+        });
+    }
+
+    // Update the event listener for the share button
+    document.querySelector('.share-button').addEventListener('click', shareSettings);
+});
+
+const urlParams = new URLSearchParams(window.location.search);
+const zoneParam = urlParams.get('zone');
+
+if (zoneParam === 'single-zone') {
+    selectZone('single-zone');
+} else {
+    selectZone('dual-zone'); // Default to dual-zone if not specified
+}
 document.querySelector('.share-button').addEventListener('click', shareSettings);
