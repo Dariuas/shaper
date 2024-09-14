@@ -127,8 +127,8 @@ function updateYaw(element, position) {
     element.textContent = value;
 }
 
-// Initialize drag functionality for all sliders
-window.onload = function () {
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize drag functionality for all sliders
     enableDrag(document.querySelector('.carve-handle'), updateCarve);
     enableDrag(document.querySelector('.pivot-handle'), updatePivot);
     enableDrag(document.querySelector('.triangle-handle'), updateTriangle);
@@ -143,28 +143,8 @@ window.onload = function () {
     carveCanvas.height = 50; // Match the height of .carve-line
     document.querySelector('.carve-line').appendChild(carveCanvas);
     drawCarveLine(); // Draw the static wavy line once
-};
 
-// Share settings functionality
-function shareSettings() {
-    const params = new URLSearchParams({
-        carve: document.querySelector('.carve-handle').textContent,
-        stance: document.querySelector('.pivot-handle').textContent,
-        aggressive: document.querySelector('.triangle-handle').textContent,
-        dynamic: document.querySelector('.dynamic-handle').textContent,
-        roll: document.querySelector('.roll-handle').textContent,
-        yaw: document.querySelector('.yaw-handle').textContent
-    });
-
-    const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-    navigator.clipboard.writeText(shareUrl).then(() => {
-        alert('Settings URL copied to clipboard: ' + shareUrl);
-    }).catch(err => {
-        console.error('Error copying URL to clipboard:', err);
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
+    // Zone Engagement Logic
     const dualZoneOption = document.getElementById('dual-zone');
     const singleZoneOption = document.getElementById('single-zone');
 
@@ -192,10 +172,9 @@ document.addEventListener('DOMContentLoaded', function() {
         selectZone('single-zone');
     });
 
-    // Update the shareSettings function to include the selected zone
+    // Share settings functionality
     function shareSettings() {
         const params = new URLSearchParams({
-            // Existing parameters
             carve: document.querySelector('.carve-handle').textContent,
             stance: document.querySelector('.pivot-handle').textContent,
             aggressive: document.querySelector('.triangle-handle').textContent,
@@ -210,19 +189,10 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Settings URL copied to clipboard: ' + shareUrl);
         }).catch(err => {
             console.error('Error copying URL to clipboard:', err);
+            // Fallback for unsupported browsers
+            prompt('Copy this URL:', shareUrl);
         });
     }
 
-    // Update the event listener for the share button
     document.querySelector('.share-button').addEventListener('click', shareSettings);
 });
-
-const urlParams = new URLSearchParams(window.location.search);
-const zoneParam = urlParams.get('zone');
-
-if (zoneParam === 'single-zone') {
-    selectZone('single-zone');
-} else {
-    selectZone('dual-zone'); // Default to dual-zone if not specified
-}
-document.querySelector('.share-button').addEventListener('click', shareSettings);
