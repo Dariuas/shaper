@@ -98,8 +98,9 @@ h2 {
     font-weight: bold;
     cursor: grab;
     z-index: 2;
+    /* Ensure left positioning works with percentages */
+    transform: translateX(-50%);
 }
-
 .label-container, .dynamic-label-container {
     display: flex;
     justify-content: space-between;
