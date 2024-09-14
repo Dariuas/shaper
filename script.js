@@ -200,15 +200,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelector('.share-button').addEventListener('click', shareSettings);
 
-    // NEW CODE: Load settings from URL parameters
+    // Move the loadSettingsFromURL call to window.onload
+    window.addEventListener('load', function() {
+        loadSettingsFromURL();
+    });
+
+    // Load settings from URL parameters
     function loadSettingsFromURL() {
         const urlParams = new URLSearchParams(window.location.search);
 
         // Helper function to set slider position based on value
         function setSlider(handleSelector, updateFunction, value, minValue, maxValue) {
             const handle = document.querySelector(handleSelector);
+            if (!handle) {
+                console.error('Handle not found:', handleSelector);
+                return;
+            }
             const container = handle.parentNode;
             const range = container.offsetWidth - handle.offsetWidth;
+
+            // Ensure range is not zero to prevent division by zero
+            if (range === 0) {
+                console.error('Container width not available yet for:', handleSelector);
+                return;
+            }
 
             // Calculate position based on value
             const percent = (value - minValue) / (maxValue - minValue);
@@ -262,7 +277,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-
-    // Call the function to load settings on page load
-    loadSettingsFromURL();
 });
