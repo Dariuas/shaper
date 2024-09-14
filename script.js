@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Default selection
     let selectedZone = 'dual-zone'; // or 'single-zone' as per your preference
     dualZoneOption.classList.add('zone-selected');
-}
+
     function selectZone(zoneId) {
         if (zoneId === 'dual-zone') {
             dualZoneOption.classList.add('zone-selected');
@@ -185,14 +185,84 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            alert('Settings URL copied to clipboard: ' + shareUrl);
-        }).catch(err => {
-            console.error('Error copying URL to clipboard:', err);
-            // Fallback for unsupported browsers
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert('Settings URL copied to clipboard: ' + shareUrl);
+            }).catch(err => {
+                console.error('Error copying URL to clipboard:', err);
+                prompt('Copy this URL:', shareUrl);
+            });
+        } else {
+            // Fallback for insecure context or unsupported browser
             prompt('Copy this URL:', shareUrl);
-        });
+        }
     }
 
     document.querySelector('.share-button').addEventListener('click', shareSettings);
+
+    // NEW CODE: Load settings from URL parameters
+    function loadSettingsFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Helper function to set slider position based on value
+        function setSlider(handleSelector, updateFunction, value, minValue, maxValue) {
+            const handle = document.querySelector(handleSelector);
+            const container = handle.parentNode;
+            const range = container.offsetWidth - handle.offsetWidth;
+
+            // Calculate position based on value
+            const percent = (value - minValue) / (maxValue - minValue);
+            const position = percent * range;
+
+            handle.style.left = position + 'px';
+            updateFunction(handle, position);
+        }
+
+        // Load Carve Ability
+        if (urlParams.has('carve')) {
+            const carveValue = parseInt(urlParams.get('carve'));
+            setSlider('.carve-handle', updateCarve, carveValue, -5, 5);
+        }
+
+        // Load Stance Profile
+        if (urlParams.has('stance')) {
+            const stanceValue = parseInt(urlParams.get('stance'));
+            setSlider('.pivot-handle', updatePivot, stanceValue, -10, 10);
+        }
+
+        // Load Aggressiveness
+        if (urlParams.has('aggressive')) {
+            const aggressiveValue = parseInt(urlParams.get('aggressive'));
+            setSlider('.triangle-handle', updateTriangle, aggressiveValue, 0, 13);
+        }
+
+        // Load Dynamic Responsiveness
+        if (urlParams.has('dynamic')) {
+            const dynamicValue = parseInt(urlParams.get('dynamic'));
+            setSlider('.dynamic-handle', updateDynamic, dynamicValue, -5, 5);
+        }
+
+        // Load Roll
+        if (urlParams.has('roll')) {
+            const rollValue = parseInt(urlParams.get('roll'));
+            setSlider('.roll-handle', updateRoll, rollValue, -5, 5);
+        }
+
+        // Load Yaw Mix Rate
+        if (urlParams.has('yaw')) {
+            const yawValue = parseInt(urlParams.get('yaw'));
+            setSlider('.yaw-handle', updateYaw, yawValue, -5, 5);
+        }
+
+        // Load Zone Engagement
+        if (urlParams.has('zone')) {
+            const zoneValue = urlParams.get('zone');
+            if (zoneValue === 'dual-zone' || zoneValue === 'single-zone') {
+                selectZone(zoneValue);
+            }
+        }
+    }
+
+    // Call the function to load settings on page load
+    loadSettingsFromURL();
 });
