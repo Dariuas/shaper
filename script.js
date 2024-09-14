@@ -1,14 +1,15 @@
+// Existing function definitions remain the same
 function enableDrag(element, updateFunction) {
     let isDragging = false;
     let startX = 0;
-    let elementX = 0;
+    let startLeftPercent = 0;
 
     function dragStart(e) {
         e.preventDefault();
         isDragging = true;
 
         startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
-        elementX = element.offsetLeft;
+        startLeftPercent = parseFloat(element.style.left) || 0;
 
         document.addEventListener('mousemove', dragMove);
         document.addEventListener('touchmove', dragMove);
@@ -21,16 +22,20 @@ function enableDrag(element, updateFunction) {
 
         const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
         const dx = clientX - startX;
-        let newLeft = elementX + dx;
 
-        // Restrict the handle's position within its container
-        const minLeft = 0;
-        const maxLeft = element.parentNode.offsetWidth - element.offsetWidth;
-        if (newLeft < minLeft) newLeft = minLeft;
-        if (newLeft > maxLeft) newLeft = maxLeft;
+        const containerWidth = element.parentNode.offsetWidth;
+        const handleWidth = element.offsetWidth;
 
-        element.style.left = newLeft + 'px';
-        updateFunction(element, newLeft);
+        // Calculate the percentage movement
+        const dxPercent = (dx / (containerWidth - handleWidth)) * 100;
+        let newLeftPercent = startLeftPercent + dxPercent;
+
+        // Restrict the handle's position within 0% to 100%
+        if (newLeftPercent < 0) newLeftPercent = 0;
+        if (newLeftPercent > 100) newLeftPercent = 100;
+
+        element.style.left = newLeftPercent + '%';
+        updateFunction(element, newLeftPercent);
     }
 
     function dragEnd() {
@@ -45,88 +50,51 @@ function enableDrag(element, updateFunction) {
     element.addEventListener('touchstart', dragStart);
 }
 
-// Drawing the Carve Ability line with the first 30% slightly wavy
-function drawCarveLine() {
-    const carveCanvas = document.getElementById('carveCanvas');
-    const ctx = carveCanvas.getContext('2d');
-    const width = carveCanvas.width;
-    const height = carveCanvas.height;
-
-    ctx.clearRect(0, 0, width, height);
-    ctx.beginPath();
-
-    const wavinessEnd = width * 0.3; // 30% of the width
-    const amplitude = 5; // Adjust the amplitude for slight waviness
-    const wavelength = 50; // Adjust the wavelength for waviness frequency
-
-    for (let x = 0; x <= width; x++) {
-        let y;
-        if (x <= wavinessEnd) {
-            y = height / 2 + Math.sin((x / wavelength) * Math.PI * 2) * amplitude;
-        } else {
-            y = height / 2;
-        }
-        ctx.lineTo(x, y);
-    }
-
-    ctx.strokeStyle = 'yellow';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+function updateSliderValue(element, positionPercent, minValue, maxValue) {
+    const value = ((positionPercent / 100) * (maxValue - minValue)) + minValue;
+    return Math.round(value);
 }
 
-function updateCarve(element, position) {
-    const range = element.parentNode.offsetWidth - element.offsetWidth;
-    const percent = position / range;
-    const value = Math.round(percent * 10 - 5); // From -5 to +5
+function updateCarve(element, positionPercent) {
+    const value = updateSliderValue(element, positionPercent, -5, 5);
     element.textContent = value;
 }
 
-function updatePivot(element, position) {
-    const range = element.parentNode.offsetWidth - element.offsetWidth;
-    const percent = position / range;
-    const value = Math.round(percent * 20 - 10); // From -10 to +10
+function updatePivot(element, positionPercent) {
+    const value = updateSliderValue(element, positionPercent, -10, 10);
     element.textContent = value;
 
     const pivotLine = document.querySelector('.pivot-line');
 
-    // Adjusting stance profile: Tail high and Nose high each move up/down by 5%
     const maxShift = 5; // Maximum shift percentage
-    const tailHighShift = value < 0 ? (Math.abs(value) / 10) * maxShift : 0; // Tail High moves when value is negative
-    const noseHighShift = value > 0 ? (value / 10) * maxShift : 0; // Nose High moves when value is positive
+    const tailHighShift = value < 0 ? (Math.abs(value) / 10) * maxShift : 0;
+    const noseHighShift = value > 0 ? (value / 10) * maxShift : 0;
 
-    // Apply transformation
     pivotLine.style.transformOrigin = 'center';
     pivotLine.style.transform = `skewY(${noseHighShift - tailHighShift}deg)`;
 }
 
-function updateTriangle(element, position) {
-    const range = element.parentNode.offsetWidth - element.offsetWidth;
-    const percent = position / range;
-    const value = Math.round(percent * 13); // From 0 to 13
+function updateTriangle(element, positionPercent) {
+    const value = updateSliderValue(element, positionPercent, 0, 13);
     element.textContent = value;
 }
 
-function updateDynamic(element, position) {
-    const range = element.parentNode.offsetWidth - element.offsetWidth;
-    const percent = position / range;
-    const value = Math.round(percent * 10 - 5); // From -5 to +5
+function updateDynamic(element, positionPercent) {
+    const value = updateSliderValue(element, positionPercent, -5, 5);
     element.textContent = value;
 }
 
-function updateRoll(element, position) {
-    const range = element.parentNode.offsetWidth - element.offsetWidth;
-    const percent = position / range;
-    const value = Math.round(percent * 10 - 5); // From -5 to +5
+function updateRoll(element, positionPercent) {
+    const value = updateSliderValue(element, positionPercent, -5, 5);
     element.textContent = value;
 }
 
-function updateYaw(element, position) {
-    const range = element.parentNode.offsetWidth - element.offsetWidth;
-    const percent = position / range;
-    const value = Math.round(percent * 10 - 5); // From -5 to +5
+function updateYaw(element, positionPercent) {
+    const value = updateSliderValue(element, positionPercent, -5, 5);
     element.textContent = value;
 }
 
+// Initialization code inside DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize drag functionality for all sliders
     enableDrag(document.querySelector('.carve-handle'), updateCarve);
@@ -200,81 +168,65 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelector('.share-button').addEventListener('click', shareSettings);
 
-    // Move the loadSettingsFromURL call to window.onload
-    window.addEventListener('load', function() {
-        loadSettingsFromURL();
-    });
+    // Call the function to load settings on page load
+    loadSettingsFromURL();
+});
 
-    // Load settings from URL parameters
-    function loadSettingsFromURL() {
-        const urlParams = new URLSearchParams(window.location.search);
+function loadSettingsFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
 
-        // Helper function to set slider position based on value
-        function setSlider(handleSelector, updateFunction, value, minValue, maxValue) {
-            const handle = document.querySelector(handleSelector);
-            if (!handle) {
-                console.error('Handle not found:', handleSelector);
-                return;
-            }
-            const container = handle.parentNode;
-            const range = container.offsetWidth - handle.offsetWidth;
+    // Helper function to set slider position based on value
+    function setSlider(handleSelector, updateFunction, value, minValue, maxValue) {
+        const handle = document.querySelector(handleSelector);
 
-            // Ensure range is not zero to prevent division by zero
-            if (range === 0) {
-                console.error('Container width not available yet for:', handleSelector);
-                return;
-            }
+        // Calculate percentage position based on value
+        const percent = ((value - minValue) / (maxValue - minValue)) * 100;
 
-            // Calculate position based on value
-            const percent = (value - minValue) / (maxValue - minValue);
-            const position = percent * range;
+        handle.style.left = percent + '%';
+        updateFunction(handle, percent);
+    }
 
-            handle.style.left = position + 'px';
-            updateFunction(handle, position);
-        }
+    // Load Carve Ability
+    if (urlParams.has('carve')) {
+        const carveValue = parseInt(urlParams.get('carve'));
+        setSlider('.carve-handle', updateCarve, carveValue, -5, 5);
+    }
 
-        // Load Carve Ability
-        if (urlParams.has('carve')) {
-            const carveValue = parseInt(urlParams.get('carve'));
-            setSlider('.carve-handle', updateCarve, carveValue, -5, 5);
-        }
+    // Load Stance Profile
+    if (urlParams.has('stance')) {
+        const stanceValue = parseInt(urlParams.get('stance'));
+        setSlider('.pivot-handle', updatePivot, stanceValue, -10, 10);
+    }
 
-        // Load Stance Profile
-        if (urlParams.has('stance')) {
-            const stanceValue = parseInt(urlParams.get('stance'));
-            setSlider('.pivot-handle', updatePivot, stanceValue, -10, 10);
-        }
+    // Load Aggressiveness
+    if (urlParams.has('aggressive')) {
+        const aggressiveValue = parseInt(urlParams.get('aggressive'));
+        setSlider('.triangle-handle', updateTriangle, aggressiveValue, 0, 13);
+    }
 
-        // Load Aggressiveness
-        if (urlParams.has('aggressive')) {
-            const aggressiveValue = parseInt(urlParams.get('aggressive'));
-            setSlider('.triangle-handle', updateTriangle, aggressiveValue, 0, 13);
-        }
+    // Load Dynamic Responsiveness
+    if (urlParams.has('dynamic')) {
+        const dynamicValue = parseInt(urlParams.get('dynamic'));
+        setSlider('.dynamic-handle', updateDynamic, dynamicValue, -5, 5);
+    }
 
-        // Load Dynamic Responsiveness
-        if (urlParams.has('dynamic')) {
-            const dynamicValue = parseInt(urlParams.get('dynamic'));
-            setSlider('.dynamic-handle', updateDynamic, dynamicValue, -5, 5);
-        }
+    // Load Roll
+    if (urlParams.has('roll')) {
+        const rollValue = parseInt(urlParams.get('roll'));
+        setSlider('.roll-handle', updateRoll, rollValue, -5, 5);
+    }
 
-        // Load Roll
-        if (urlParams.has('roll')) {
-            const rollValue = parseInt(urlParams.get('roll'));
-            setSlider('.roll-handle', updateRoll, rollValue, -5, 5);
-        }
+    // Load Yaw Mix Rate
+    if (urlParams.has('yaw')) {
+        const yawValue = parseInt(urlParams.get('yaw'));
+        setSlider('.yaw-handle', updateYaw, yawValue, -5, 5);
+    }
 
-        // Load Yaw Mix Rate
-        if (urlParams.has('yaw')) {
-            const yawValue = parseInt(urlParams.get('yaw'));
-            setSlider('.yaw-handle', updateYaw, yawValue, -5, 5);
-        }
-
-        // Load Zone Engagement
-        if (urlParams.has('zone')) {
-            const zoneValue = urlParams.get('zone');
-            if (zoneValue === 'dual-zone' || zoneValue === 'single-zone') {
-                selectZone(zoneValue);
-            }
+    // Load Zone Engagement
+    if (urlParams.has('zone')) {
+        const zoneValue = urlParams.get('zone');
+        if (zoneValue === 'dual-zone' || zoneValue === 'single-zone') {
+            selectZone(zoneValue);
         }
     }
-});
+}
